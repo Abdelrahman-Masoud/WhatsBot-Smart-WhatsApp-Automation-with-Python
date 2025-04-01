@@ -1,26 +1,37 @@
-import pywhatkit as kit
-import time
 import pandas as pd
+import time
+import pywhatkit as kit
 
-# Hardcoded DataFrame with contacts and message parameters
-data = pd.DataFrame({
-    'Phone': ['+201140894327', '+966538796442'],  # Replace with actual phone numbers
-    'Name': ['Ahmed', 'Sara'],
-    'Message': ['Hello Ahmed! This is a test message.', 'Hi Sara! Your order has been shipped.']
-})
+# Load contact data from Excel
+file_path = r"C:\Users\aaf88\OneDrive\Documents\whatsapp.xlsx"
+df = pd.read_excel(file_path)
 
-# Define sending delay between messages
-send_interval = 30  # Seconds
+def get_message(name, gender, msg_type):
+    """Returns the appropriate Eid greeting message."""
+    if gender == "male" and msg_type == "formal":
+        return f"السلام عليكم {name}\nكل سنة وحضرتك طيب وربنا يعيده عليك وعلى اسرتك بكل خير يارب ❤️"
+    elif gender == "male" and msg_type == "friendly":
+        return f"حبيبى {name}\nكل سنة وانت طيب يا صديقى وربنا يعيده عليك وعلى حبايبك بكل خير يارب ❤️"
+    elif gender == "female" and msg_type == "formal":
+        return f"السلام عليكم {name}\nكل سنة وحضرتك طيبة وربنا يعيده عليكي وعلى اسرتك بكل خير يارب ❤️"
+    elif gender == "female" and msg_type == "friendly":
+        return f"حبيبتى {name}\nكل سنة وانتي طيبة وربنا يعيده عليكي وعلى حبايبك بكل خير يارب ❤️"
+    else:
+        return ""
 
-# Iterate over the data and send messages
-for index, row in data.iterrows():
-    phone_number = row['Phone']
-    message = row['Message']
+# Loop through each contact and send a personalized message
+for index, row in df.iterrows():
+    phone_number = row["Phone"]  # Assuming the first column is named 'Phone'
+    name = row["Name"]  # Second column: 'Name'
+    gender = row["Gender"].strip().lower()  # Third column: 'Gender'
+    msg_type = row["Message Type"].strip().lower()  # Fourth column: 'Message Type'
     
-    try:
-        kit.sendwhatmsg_instantly(phone_number, message, wait_time=15)
-        print(f"Message sent to {phone_number}")
-    except Exception as e:
-        print(f"Failed to send message to {phone_number}: {e}")
+    message = get_message(name, gender, msg_type)
     
-    time.sleep(send_interval)
+    if message:
+        kit.sendwhatmsg_instantly(f"+{phone_number}", message, wait_time=10)
+        time.sleep(5)  # Small delay to avoid blocking
+    else:
+        print(f"Skipping {name}: Invalid gender or message type")
+
+print("All messages sent successfully!")
